@@ -4,7 +4,8 @@ const searchTab = document.querySelector("[data-searchWeather]");
 const userinfoContainer = document.querySelector(".weather-InfoContainer");
 const grantLocationContainer = document.querySelector(".grant-Location-Container");
 const searchForm = document.querySelector("[data-searchform]");
-const LoadingScreen = document.querySelector("[loading-screen-conainer]");
+const LoadingScreen = document.querySelector(".loading-screen-container");
+const grantAccess = document.querySelector("[data-grantAccess]");
 
 const weatherinfo = document.querySelector(".show-weather-info")
 let currentTab = userTab;
@@ -82,20 +83,20 @@ function getFromSessionStorage(){
 }
 
 async function fetchUserWeatherInfo(coordinates){
-    const {lat , longi} = coordinates;
+    const {lat , lon} = coordinates;
     //remove grantcontainer
     grantLocationContainer.remove("active");
     //make loader visible
     LoadingScreen.classList.add("active");
-    //make api call
+    //make api call https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
     try{
-    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${longi}&appid=${API_KEY}&units=metric`);
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`);
         const data = await response.json();
         //remove loader
         LoadingScreen.classList.remove("active");
         //display data
         userinfoContainer.classList.add("active");
-        renderWeatherinfo(weatherinfo);
+        renderWeatherinfo(data);
     }catch(e){
         LoadingScreen.remove("active");
         console.error("Wrong coordinates ",e);
@@ -121,10 +122,62 @@ function renderWeatherinfo(weatherinfo){
     //fetch values from weatherinfo object and put it in ui element
     cityName.innerText = weatherinfo?.name; 
     Country.src = `https://flagcdn.com/144x108/${weatherinfo?.sys?.country.toLowerCase()}.png`;
-    desc.innerText = weatherInfo?.weather?.[0]?.description;
+    desc.innerText = weatherinfo?.weather?.[0]?.description;
     weatherIcon.src = `http://openweathermap.org/img/w/${weatherinfo?.weather?.[0]?.icon}.png`;
     temp.innerText = `${weatherinfo?.main?.temp} °C`;
     windspeed.innerText = `${weatherinfo?.wind?.speed} m/s`;
     humidity.innerText = `${weatherinfo?.main?.humidity}%`;
     clouds.innerText = `${weatherinfo?.clouds?.all}%`;
+}
+function showposition(position){
+    const usercoordinates = {
+        lat : position.coords.latitude ,
+        lon : position.coords.longitude
+    }
+    sessionStorage.setItem("user-coordinates" , JSON.stringify(usercoordinates));
+    fetchUserWeatherInfo(usercoordinates);
+}
+function getLocation(){
+    //if browser support geolocation then directly fetch location
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(showposition);
+    }else{
+        //alert no geolocation support available
+        alert("Browser doesn't support api calls");
+    }
+}
+
+grantAccess.addEventListener('click' , getLocation);
+
+let searchInput = document.querySelector("[data-searchInput]")
+searchForm.addEventListener("submit" , (e)=> {
+    e.preventDefault();
+    let cityName = searchInput.value;
+    //if input field is empty then simply return;
+    if(cityName === ""){
+        return;
+    }
+    fetchSearchWeatherInfo(cityName);
+});
+
+async function fetchSearchWeatherInfo(city){
+    
+    //invoke loading screen
+    LoadingScreen.classList.add("active");
+    userinfoContainer.classList.remove("active");
+    grantLocationContainer.classList.add("active");
+
+    try{
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`)
+        const data = await response.json();
+        //now remove loader
+        LoadingScreen.classList.remove("active");
+        //make user container visible
+        userinfoContainer.classList.add("active");
+        // render data in ui
+        renderWeatherinfo(data);
+    }catch(error){
+        console.error("something went wrong check city name and try again");
+        
+    }
 }
