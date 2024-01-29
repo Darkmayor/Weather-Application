@@ -89,25 +89,24 @@ async function fetchUserWeatherInfo(coordinates){
     LoadingScreen.classList.add("active");
     //make api call
     try{
-
-        const response =await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${longi}&appid=${API_KEY}&units=metric`);
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${longi}&appid=${API_KEY}&units=metric`);
         const data = await response.json();
         //remove loader
         LoadingScreen.classList.remove("active");
         //display data
         userinfoContainer.classList.add("active");
-        renderWeatherinfo(data);
+        renderWeatherinfo(weatherinfo);
     }catch(e){
         LoadingScreen.remove("active");
-        console.error("Wrong coordinates");
+        console.error("Wrong coordinates ",e);
     }
 }
 
-function renderWeatherinfo(data){
+function renderWeatherinfo(weatherinfo){
     //data to be displayed
     // city name , flag(country code) , desc , weather icon , temp , windspeed , humidity , clouds
     //city name
-    const cityNamme = document.querySelector("[data-city-name]");
+    const cityName = document.querySelector("[data-city-name]");
     //flag 
     const Country = document.querySelector("[data-country-icon]");
     //desc
@@ -120,5 +119,12 @@ function renderWeatherinfo(data){
     const clouds = document.querySelector("[data-cloud]");
 
     //fetch values from weatherinfo object and put it in ui element
-    
+    cityName.innerText = weatherinfo?.name; 
+    Country.src = `https://flagcdn.com/144x108/${weatherinfo?.sys?.country.toLowerCase()}.png`;
+    desc.innerText = weatherInfo?.weather?.[0]?.description;
+    weatherIcon.src = `http://openweathermap.org/img/w/${weatherinfo?.weather?.[0]?.icon}.png`;
+    temp.innerText = `${weatherinfo?.main?.temp} °C`;
+    windspeed.innerText = `${weatherinfo?.wind?.speed} m/s`;
+    humidity.innerText = `${weatherinfo?.main?.humidity}%`;
+    clouds.innerText = `${weatherinfo?.clouds?.all}%`;
 }
