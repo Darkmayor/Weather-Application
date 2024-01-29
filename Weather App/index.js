@@ -10,6 +10,7 @@ const grantAccess = document.querySelector("[data-grantAccess]");
 const weatherinfo = document.querySelector(".show-weather-info")
 let currentTab = userTab;
 currentTab.classList.add("current-tab");
+getFromSessionStorage();
 
 // FetchWeatherDetails();
 // //create function to display the weather
