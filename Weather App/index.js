@@ -78,7 +78,7 @@ function getFromSessionStorage(){
         grantLocationContainer.classList.add("active");
     }else{
         //if local coordinates are present then display weather
-        const coordinates = JSON.parse();
+        const coordinates = JSON.parse(localCoordinate);
         fetchUserWeatherInfo(coordinates);
     }
 }
@@ -134,7 +134,7 @@ function showposition(position){
     const usercoordinates = {
         lat : position.coords.latitude ,
         lon : position.coords.longitude
-    }
+    };
     sessionStorage.setItem("user-coordinates" , JSON.stringify(usercoordinates));
     fetchUserWeatherInfo(usercoordinates);
 }
@@ -161,15 +161,16 @@ searchForm.addEventListener("submit" , (e)=> {
     fetchSearchWeatherInfo(cityName);
 });
 
-async function fetchSearchWeatherInfo(city){
-    
+async function fetchSearchWeatherInfo(city){ 
     //invoke loading screen
     LoadingScreen.classList.add("active");
     userinfoContainer.classList.remove("active");
     grantLocationContainer.classList.add("active");
 
     try{
+        //get data
         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`)
+        // convert it to json
         const data = await response.json();
         //now remove loader
         LoadingScreen.classList.remove("active");
